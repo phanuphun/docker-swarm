@@ -1,37 +1,18 @@
-version: "3.9"
-
-networks:
-  app-net:
-    driver: overlay
-    attachable: true  # เผื่อเราจะเอา container ชั่วคราวมาต่อเพื่อทดสอบ
+version: "3.8"
 
 services:
-  web:
-    image: nginx:1.27-alpine
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     ports:
-      - "8081:80"        
-    networks:
-      - app-net
-    deploy:
-      replicas: 2
-      update_config:
-        parallelism: 1
-        delay: 10s
-        order: start-first
-      restart_policy:
-        condition: on-failure
-
-  echo:
-    image: ealen/echo-server
+      - "8082:8081" 
+    
+  nginx:
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
     ports:
-      - "8083:80"         
-    networks:
-      - app-net
-    deploy:
-      replicas: 2
-      update_config:
-        parallelism: 1
-        delay: 10s
-        order: start-first
-      restart_policy:
-        condition: on-failure
+      - "8780:80"
+    depends_on:
+      - backend
