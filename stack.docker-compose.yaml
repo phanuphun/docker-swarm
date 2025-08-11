@@ -1,0 +1,57 @@
+version: "3.8"
+networks:
+  app-net:
+    external: true
+
+services:
+  backend:
+    image: swapp-backend:dev
+    ports:
+      - "8082:8081" 
+    networks:
+      - app-net
+    deploy:
+      replicas: 5
+      placement:
+        constraints:
+          - node.hostname == docker-desktop
+          - node.role == manager
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+      restart_policy:
+        condition: on-failure
+    
+  nginx:
+    image: swapp-nginx:dev
+    ports:
+      - "8780:80"
+    networks:
+      - app-net
+    deploy:
+      replicas: 3
+      placement:
+        constraints:
+          - node.hostname == docker-desktop
+          - node.role == manager
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+      restart_policy:
+        condition: on-failure
+
+  visualizer:
+    image: dockersamples/visualizer:latest
+    ports:
+      - "8881:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - app-net
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == docker-desktop
+          - node.role == manager
